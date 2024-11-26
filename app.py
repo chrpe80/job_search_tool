@@ -1,4 +1,4 @@
-from PySide6 import QtWidgets, QtGui
+from PySide6 import QtWidgets, QtCore, QtGui
 import pandas as pd
 import sys
 import os
@@ -16,11 +16,6 @@ class Table(QtWidgets.QTableView):
     """A class that inherits and adds more functionality to the QTableView"""
 
     def __init__(self):
-        """
-        The constructor creates an instance of Model
-        It sets the model of the QTableView to this model
-        It applies settings and populates the table with the content of entries.csv
-        """
         super().__init__()
         self.model = Model(['Name of company', 'Name of contact', 'Contact phone nr', 'Contact email', 'Note'])
         self.setModel(self.model)
@@ -28,8 +23,6 @@ class Table(QtWidgets.QTableView):
         self.populate_table()
 
     def populate_table(self):
-        """Tries to Populate the table with the content of entries.csv"""
-
         try:
             df = pd.read_csv("entries.csv")
             for i in range(df.shape[0]):
@@ -41,8 +34,6 @@ class Table(QtWidgets.QTableView):
             pass
 
     def add_entry(self, company, contact, phone, email, note):
-        """Takes the form values as arguments and appends them to the table"""
-
         self.model.appendRow([
             QtGui.QStandardItem(str(company)),
             QtGui.QStandardItem(str(contact)),
@@ -53,134 +44,134 @@ class Table(QtWidgets.QTableView):
 
 
 class Window(QtWidgets.QWidget):
-    """The main app"""
+    """
+    The main app
+    """
 
     def __init__(self):
         super().__init__()
-        # The main layout is set
-        # The main layout is set
-        self.layout = QtWidgets.QVBoxLayout()
+        self.create_csv()
+
+        self.layout_main = QtWidgets.QVBoxLayout()
+        self.layout_form_page = QtWidgets.QVBoxLayout()
+        self.layout_table_page = QtWidgets.QVBoxLayout()
+        self.layout_update_note_page = QtWidgets.QVBoxLayout()
+        self.layout_container_form = QtWidgets.QVBoxLayout()
+        self.layout_container_table = QtWidgets.QVBoxLayout()
+        self.layout_buttons = QtWidgets.QHBoxLayout()
+        self.layout_container_update_note_form = QtWidgets.QVBoxLayout()
+
         self.tabs = QtWidgets.QTabWidget()
-        self.layout.addWidget(self.tabs)
+        self.form_page = QtWidgets.QWidget()
+        self.table_page = QtWidgets.QWidget()
+        self.update_note_page = QtWidgets.QWidget()
 
-        self.layout = QtWidgets.QVBoxLayout(self)
+        self.container_form = QtWidgets.QGroupBox("New entry")
+        self.container_table = QtWidgets.QGroupBox("All entries")
+        self.container_update_note = QtWidgets.QGroupBox("Update note")
 
-        # Form page
-        self.form_widget = QtWidgets.QWidget()
-        self.form_layout = QtWidgets.QVBoxLayout(self.form_widget)
-
-        # The widgets are created
         self.name_of_company = QtWidgets.QLineEdit()
-        self.name_of_company.setMaximumWidth(500)
         self.name_of_contact = QtWidgets.QLineEdit()
-        self.name_of_contact.setMaximumWidth(500)
         self.contact_phone_nr = QtWidgets.QLineEdit()
-        self.contact_phone_nr.setMaximumWidth(500)
         self.contact_email = QtWidgets.QLineEdit()
-        self.contact_email.setMaximumWidth(500)
         self.note = QtWidgets.QTextEdit()
-        self.note.setMaximumWidth(500)
         self.send_button = QtWidgets.QPushButton("Send")
-        self.send_button.setMaximumWidth(500)
 
-        # Table page
-        self.table_widget = QtWidgets.QWidget()
-        self.table_layout = QtWidgets.QVBoxLayout(self.table_widget)
         self.table = Table()
 
-        # The selection behavior of the table is set
-        self.table.setSelectionBehavior(QtWidgets.QTableView.SelectRows)
+        self.entry_to_update = QtWidgets.QLineEdit()
+        self.update_note = QtWidgets.QTextEdit()
+        self.update_note_send_button = QtWidgets.QPushButton("Send")
 
-        # Method calls
-        self.create_csv()
-        self.apply_window_settings()
-        self.set_layout()
-        self.connect_send_button()
+        self.add_pages_to_tabs()
+        self.set_layouts()
+        self.connect_send_buttons()
         self.add_widgets()
+        self.apply_settings()
 
     @staticmethod
     def create_csv():
-        """Creates the necessary csv file"""
-
         if not os.path.exists("entries.csv"):
             with open("entries.csv", "w"):
                 pass
 
-    def apply_window_settings(self):
-        """Applies settings to the main window"""
-
+    def apply_settings(self):
+        # Main window
         self.setWindowTitle("Job-search-tool")
 
-    def set_layout(self):
-        """Sets the layout"""
+        # Form container
+        self.container_form.setFixedWidth(500)
 
-        self.setLayout(self.layout)
-        self.add_tabs_to_layout()
+        # Form elements
+        self.name_of_company.setMaximumWidth(500)
+        self.name_of_contact.setMaximumWidth(500)
+        self.contact_phone_nr.setMaximumWidth(500)
+        self.contact_email.setMaximumWidth(500)
+        self.note.setMaximumWidth(500)
+        self.send_button.setMaximumWidth(500)
 
-    def connect_send_button(self):
-        """Connects the 'send' button to the send_button_clicked method"""
+        # Table
+        self.table.setSelectionBehavior(QtWidgets.QTableView.SelectRows)
 
+        # Container update note
+        self.container_update_note.setFixedWidth(500)
+
+    def set_layouts(self):
+        self.setLayout(self.layout_main)
+        self.form_page.setLayout(self.layout_form_page)
+        self.table_page.setLayout(self.layout_table_page)
+        self.update_note_page.setLayout(self.layout_update_note_page)
+        self.container_form.setLayout(self.layout_container_form)
+        self.container_table.setLayout(self.layout_container_table)
+        self.container_update_note.setLayout(self.layout_container_update_note_form)
+
+    def add_pages_to_tabs(self):
+        self.tabs.addTab(self.form_page, "New entry")
+        self.tabs.addTab(self.table_page, "All entries")
+        self.tabs.addTab(self.update_note_page, "Update note")
+
+    def connect_send_buttons(self):
         self.send_button.clicked.connect(self.send_button_clicked)
+        self.update_note_send_button.clicked.connect(
+            lambda: self.update_note_send_button_clicked(self.update_note.toPlainText(), self.entry_to_update.text()))
 
     def add_widgets(self):
-        """Adds the widgets"""
+        self.layout_container_form.addWidget(QtWidgets.QLabel("Name of company"))
+        self.layout_container_form.addWidget(self.name_of_company)
+        self.layout_container_form.addWidget(QtWidgets.QLabel("Name of contact"))
+        self.layout_container_form.addWidget(self.name_of_contact)
+        self.layout_container_form.addWidget(QtWidgets.QLabel("Contact phone nr"))
+        self.layout_container_form.addWidget(self.contact_phone_nr)
+        self.layout_container_form.addWidget(QtWidgets.QLabel("Contact email"))
+        self.layout_container_form.addWidget(self.contact_email)
+        self.layout_container_form.addWidget(QtWidgets.QLabel("Note"))
+        self.layout_container_form.addWidget(self.note)
+        self.layout_container_form.addWidget(self.send_button)
 
-        # The container that will hold the form is created
-        container_form = QtWidgets.QGroupBox("New entry")
-        container_form_layout = QtWidgets.QHBoxLayout()
-        container_form.setLayout(container_form_layout)
-
-        form_layout = QtWidgets.QVBoxLayout()
-        form_layout.addWidget(QtWidgets.QLabel("Name of company"))
-        form_layout.addWidget(self.name_of_company)
-        form_layout.addWidget(QtWidgets.QLabel("Name of contact"))
-        form_layout.addWidget(self.name_of_contact)
-        form_layout.addWidget(QtWidgets.QLabel("Contact phone nr"))
-        form_layout.addWidget(self.contact_phone_nr)
-        form_layout.addWidget(QtWidgets.QLabel("Contact email"))
-        form_layout.addWidget(self.contact_email)
-        form_layout.addWidget(QtWidgets.QLabel("Note"))
-        form_layout.addWidget(self.note)
-        form_layout.addWidget(self.send_button)
-
-        container_form_layout.addStretch()
-        container_form_layout.addLayout(form_layout)
-        container_form_layout.addStretch()
-
-        self.form_layout.addWidget(container_form)
-        self.tabs.addTab(self.form_widget, "Form")
-
-        # The container that will hold the table is created
-        container_table = QtWidgets.QGroupBox("Overview")
-        container_table_layout = QtWidgets.QVBoxLayout()
-        container_table.setLayout(container_table_layout)
-
-        # The layout that will hold the action buttons is created
-        actions_layout = QtWidgets.QHBoxLayout()
-
-        # The action buttons are created
         delete = QtWidgets.QPushButton("Delete")
         delete.clicked.connect(self.delete_row)
         save = QtWidgets.QPushButton("Save")
-        save.clicked.connect(self.save_to_csv)
+        save.clicked.connect(self.save_table_to_csv)
 
-        # The action buttons are added to their layout
-        actions_layout.addWidget(delete)
-        actions_layout.addWidget(save)
+        self.layout_buttons.addWidget(delete)
+        self.layout_buttons.addWidget(save)
 
-        # The table and the actions_layout are added to the container_table_layout
-        container_table_layout.addWidget(self.table)
-        container_table_layout.addLayout(actions_layout)
+        self.layout_container_table.addWidget(self.table)
+        self.layout_container_table.addLayout(self.layout_buttons)
 
-        # The table container is added to the table layout
-        self.table_layout.addWidget(container_table)
+        self.layout_container_update_note_form.addWidget(QtWidgets.QLabel("Entry to update"))
+        self.layout_container_update_note_form.addWidget(self.entry_to_update)
+        self.layout_container_update_note_form.addWidget(QtWidgets.QLabel("New value"))
+        self.layout_container_update_note_form.addWidget(self.update_note)
+        self.layout_container_update_note_form.addWidget(self.update_note_send_button)
 
-        # The table widget page is added to the tab menu
-        self.tabs.addTab(self.table_widget, "Table")
+        self.layout_form_page.addWidget(self.container_form, alignment=QtCore.Qt.AlignCenter)
+        self.layout_table_page.addWidget(self.container_table)
+        self.layout_update_note_page.addWidget(self.container_update_note, alignment=QtCore.Qt.AlignCenter)
 
-    def save_to_csv(self):
-        """Saves the table to a csv file"""
+        self.layout_main.addWidget(self.tabs)
 
+    def save_table_to_csv(self):
         data = []
         for row in range(self.table.model.rowCount()):
             row_data = []
@@ -191,19 +182,22 @@ class Window(QtWidgets.QWidget):
 
         columns = ['Name of company', 'Name of contact', 'Contact phone nr', 'Contact email', 'Note']
         df = pd.DataFrame(data=data, columns=columns)
+        df["Note"] = df["Note"].astype(str)
         df.to_csv("entries.csv", index=False)
 
-    def delete_row(self):
-        """Deletes the selected row"""
+        self.update_table()
 
+    def update_table(self):
+        self.table.model.setRowCount(0)
+        self.table.populate_table()
+
+    def delete_row(self):
         indexes = self.table.selectionModel().selectedRows()
         for index in sorted(indexes):
             self.table.model.removeRow(index.row())
-        self.save_to_csv()
+        self.save_table_to_csv()
 
     def send_button_clicked(self):
-        """When the 'send' button is clicked, this method is called"""
-
         company = self.name_of_company.text()
         contact = self.name_of_contact.text()
         phone = self.contact_phone_nr.text()
@@ -211,7 +205,7 @@ class Window(QtWidgets.QWidget):
         note = self.note.toPlainText()
 
         self.table.add_entry(company, contact, phone, email, note)
-        self.save_to_csv()
+        self.save_table_to_csv()
 
         self.name_of_company.clear()
         self.name_of_contact.clear()
@@ -219,8 +213,17 @@ class Window(QtWidgets.QWidget):
         self.contact_email.clear()
         self.note.clear()
 
-    def add_tabs_to_layout(self):
-        self.layout.addWidget(self.tabs)
+    def update_note_send_button_clicked(self, text, index):
+        df = pd.read_csv("entries.csv")
+
+        if int(index) - 1 in df.index:
+            df.at[int(index) - 1, "Note"] = text
+            df.to_csv("entries.csv", index=False)
+            self.entry_to_update.clear()
+            self.update_note.clear()
+            self.update_table()
+        else:
+            pass
 
 
 if __name__ == "__main__":
