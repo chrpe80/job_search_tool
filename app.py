@@ -187,6 +187,8 @@ class Window(QtWidgets.QWidget):
 
         self.update_table()
 
+        self.show_information("Saved successfully", "The csv-file and the table was updated")
+
     def update_table(self):
         self.table.model.setRowCount(0)
         self.table.populate_table()
@@ -196,6 +198,15 @@ class Window(QtWidgets.QWidget):
         for index in sorted(indexes):
             self.table.model.removeRow(index.row())
         self.save_table_to_csv()
+
+    @staticmethod
+    def show_information(message, details):
+        information = QtWidgets.QMessageBox()
+        information.setIcon(QtWidgets.QMessageBox.Information)
+        information.setWindowTitle("Information")
+        information.setText(message)
+        information.setDetailedText(details)
+        information.exec()
 
     def send_button_clicked(self):
         company = self.name_of_company.text()
@@ -216,14 +227,16 @@ class Window(QtWidgets.QWidget):
     def update_note_send_button_clicked(self, text, index):
         df = pd.read_csv("entries.csv")
 
-        if int(index) - 1 in df.index:
+        if index.isnumeric() and int(index) - 1 in df.index:
             df.at[int(index) - 1, "Note"] = text
             df.to_csv("entries.csv", index=False)
             self.entry_to_update.clear()
             self.update_note.clear()
             self.update_table()
         else:
-            pass
+            message = "Something went wrong"
+            details = f"The value you entered [ {index} ] is not in the table index"
+            self.show_information(message, details)
 
 
 if __name__ == "__main__":
